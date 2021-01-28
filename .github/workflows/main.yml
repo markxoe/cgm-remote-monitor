@@ -50,7 +50,6 @@ jobs:
         uses: docker/setup-buildx-action@v1
       - name: Build, tag and push the dev Docker image
         run: |
-          docker buildx build --platform linux/amd64,linux/arm/v7,linux/arm64 --no-cache=true -t ${{ env.DOCKER_IMAGE }}:dev_${{ github.sha }} .
-          docker image push ${{ env.DOCKER_IMAGE }}:dev_${{ github.sha }}
+          docker buildx build --platform linux/amd64,linux/arm/v7,linux/arm64 --tag ${{ env.DOCKER_IMAGE }}:dev_${{ github.sha }} --push .
           docker tag ${{ env.DOCKER_IMAGE }}:dev_${{ github.sha }} ${{ env.DOCKER_IMAGE }}:latest_dev
           docker image push ${{ env.DOCKER_IMAGE }}:latest_dev
