@@ -44,9 +44,8 @@ jobs:
     name: Publish dev branch to Docker Hub
     needs: test
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/dev' && github.repository_owner == 'nightscout'
     env:
-      DOCKER_IMAGE: nightscout/cgm-remote-monitor
+      DOCKER_IMAGE: markxoe/cgm-remote-monitor-dev
     steps:
       - name: Login to Docker Hub
         uses: docker/login-action@v1
@@ -54,52 +53,15 @@ jobs:
           username: ${{ secrets.DOCKER_USER }}
           password: ${{ secrets.DOCKER_PASS }}
       - name: Clean git Checkout
-        if: success()
         uses: actions/checkout@v2
       - name: Install Docker buildx
-        if: success()
         id: buildx
         uses: crazy-max/ghaction-docker-buildx@v1
         with:
           version: latest
       - name: Build, tag and push the dev Docker image
-        if: success()
         run: |
           docker buildx build --platform linux/amd64,linux/arm/v7,linux/arm64 --no-cache=true -t ${{ env.DOCKER_IMAGE }}:dev_${{ github.sha }} .
           docker image push ${{ env.DOCKER_IMAGE }}:dev_${{ github.sha }}
           docker tag ${{ env.DOCKER_IMAGE }}:dev_${{ github.sha }} ${{ env.DOCKER_IMAGE }}:latest_dev
           docker image push ${{ env.DOCKER_IMAGE }}:latest_dev
-
-  publish_master:
-    name: Publish master branch to Docker Hub
-    needs: test
-    runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/master' && github.repository_owner == 'nightscout'
-    env:
-      DOCKER_IMAGE: nightscout/cgm-remote-monitor
-    steps:
-      - name: Login to Docker Hub
-        uses: docker/login-action@v1
-        with:
-          username: ${{ secrets.DOCKER_USER }}
-          password: ${{ secrets.DOCKER_PASS }}
-      - name: Clean git Checkout
-        if: success()
-        uses: actions/checkout@v2
-      - name: get-npm-version
-        if: success()
-        id: package-version
-        uses: martinbeentjes/npm-get-version-action@master
-      - name: Install Docker buildx
-        if: success()
-        id: buildx
-        uses: crazy-max/ghaction-docker-buildx@v1
-        with:
-          version: latest
-      - name: Build, tag and push the master Docker image
-        if: success()
-        run: |
-          docker buildx build --platform linux/amd64,linux/arm/v7,linux/arm64 --no-cache=true -t ${{ env.DOCKER_IMAGE }}:${{ steps.package-version.outputs.current-version }} .
-          docker image push ${{ env.DOCKER_IMAGE }}:${{ steps.package-version.outputs.current-version }}
-          docker tag ${{ env.DOCKER_IMAGE }}:${{ steps.package-version.outputs.current-version }} ${{ env.DOCKER_IMAGE }}:latest
-          docker image push ${{ env.DOCKER_IMAGE }}:latest
