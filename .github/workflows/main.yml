@@ -56,10 +56,16 @@ jobs:
       - name: Clean git Checkout
         if: success()
         uses: actions/checkout@v2
+      - name: Install Docker buildx
+        if: success()
+        id: buildx
+        uses: crazy-max/ghaction-docker-buildx@v1
+        with:
+          version: latest
       - name: Build, tag and push the dev Docker image
         if: success()
         run: |
-          docker build --no-cache=true -t ${{ env.DOCKER_IMAGE }}:dev_${{ github.sha }} .
+          docker buildx build --platform linux/amd64,linux/arm/v7,linux/arm64 --no-cache=true -t ${{ env.DOCKER_IMAGE }}:dev_${{ github.sha }} .
           docker image push ${{ env.DOCKER_IMAGE }}:dev_${{ github.sha }}
           docker tag ${{ env.DOCKER_IMAGE }}:dev_${{ github.sha }} ${{ env.DOCKER_IMAGE }}:latest_dev
           docker image push ${{ env.DOCKER_IMAGE }}:latest_dev
@@ -84,10 +90,16 @@ jobs:
         if: success()
         id: package-version
         uses: martinbeentjes/npm-get-version-action@master
+      - name: Install Docker buildx
+        if: success()
+        id: buildx
+        uses: crazy-max/ghaction-docker-buildx@v1
+        with:
+          version: latest
       - name: Build, tag and push the master Docker image
         if: success()
         run: |
-          docker build --no-cache=true -t ${{ env.DOCKER_IMAGE }}:${{ steps.package-version.outputs.current-version }} .
+          docker buildx build --platform linux/amd64,linux/arm/v7,linux/arm64 --no-cache=true -t ${{ env.DOCKER_IMAGE }}:${{ steps.package-version.outputs.current-version }} .
           docker image push ${{ env.DOCKER_IMAGE }}:${{ steps.package-version.outputs.current-version }}
           docker tag ${{ env.DOCKER_IMAGE }}:${{ steps.package-version.outputs.current-version }} ${{ env.DOCKER_IMAGE }}:latest
           docker image push ${{ env.DOCKER_IMAGE }}:latest
